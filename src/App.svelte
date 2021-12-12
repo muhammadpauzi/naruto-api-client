@@ -4,15 +4,16 @@
     let dataResponse = {};
     let characters = [];
     let currentSkip = 0;
+    let currentQuery = "";
 
     $: {
-        getCharacters(currentSkip);
+        getCharacters(currentSkip, currentQuery);
     }
 
-    const fetchCharacters = async (skip) => {
+    const fetchCharacters = async (skip, q) => {
         try {
             const res = await fetch(
-                `http://localhost:5000/api/characters?skip=${skip}`
+                `http://localhost:5000/api/characters?skip=${skip}&q=${q}`
             );
             const data = await res.json();
             return { res, data };
@@ -21,8 +22,8 @@
         }
     };
 
-    const getCharacters = async (skip) => {
-        const { res, data } = await fetchCharacters(skip);
+    const getCharacters = async (skip, q = "") => {
+        const { res, data } = await fetchCharacters(skip, q);
         characters = data.data;
         dataResponse = data;
         dataResponse.url = data.url + "/";
@@ -30,7 +31,7 @@
     };
 
     onMount(async () => {
-        await getCharacters(currentSkip);
+        await getCharacters(currentSkip, currentQuery);
     });
 </script>
 
@@ -49,7 +50,27 @@
             </p>
         </div>
 
-        <hr class="block mb-10 border-1 border-gray-200" />
+        <div>
+            <input
+                type="text"
+                on:keyup={(e) => {
+                    // @ts-ignore
+                    currentQuery = e.target.value;
+                }}
+                placeholder="Enter keyword of name..."
+                class="py-3 px-4 border-2 border-gray-100 bg-white text-gray-800 w-full mb-4 rounded "
+            />
+        </div>
+
+        <hr class="block mb-5 border-1 border-gray-200" />
+
+        <div class="mb-5">
+            <p class="font-bold text-lg text-gray-500">
+                {characters.length > 0
+                    ? `${characters.length} characters founded.`
+                    : ""}
+            </p>
+        </div>
 
         <div class="grid grid-cols-3 gap-2">
             {#each characters as character (character._id)}
