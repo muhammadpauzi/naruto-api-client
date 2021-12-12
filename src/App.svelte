@@ -1,12 +1,14 @@
 <script>
     import { onMount } from "svelte";
 
+    let dataResponse = {};
     let characters = [];
-    let baseURLAPI = "";
 
-    const fetchCharacters = async () => {
+    const fetchCharacters = async (skip) => {
         try {
-            const res = await fetch("http://localhost:5000/api/characters");
+            const res = await fetch(
+                `http://localhost:5000/api/characters?skip=${skip}`
+            );
             const data = await res.json();
             return { res, data };
         } catch (error) {
@@ -14,10 +16,12 @@
         }
     };
 
-    const getCharacters = async () => {
-        const { res, data } = await fetchCharacters();
+    const getCharacters = async (skip = 0) => {
+        const { res, data } = await fetchCharacters(skip);
         characters = data.data;
-        baseURLAPI = data.url + "/";
+        dataResponse = data;
+        dataResponse.url = data.url + "/";
+        delete dataResponse.data;
     };
 
     onMount(async () => {
@@ -50,7 +54,7 @@
                     <img
                         class="block mx-auto w-full"
                         src={character.picture == "default.jpg"
-                            ? baseURLAPI + character.picture
+                            ? dataResponse.url + character.picture
                             : character.picture.split("/revision")[0]}
                         alt=""
                     />
@@ -61,7 +65,36 @@
                         <p class="text-gray-500">{character.nameInJapan}</p>
                     </div>
                 </div>
+            {:else}
+                <p class="text-red-500 font-bold text-center w-full py-10">
+                    Characters not found.
+                </p>
             {/each}
+        </div>
+
+        <div class="flex items-center justify-between py-5">
+            <div>
+                {#if dataResponse.previous}
+                    <button
+                        on:click={() => {
+                            getCharacters(dataResponse.previous.skip);
+                        }}
+                        class="block hover:bg-gray-200 hover:border-gray-300 rounded hover:shadow py-2 px-4 bg-gray-100 text-gray-500 border-2 border-gray-200 font-bold"
+                        >Previous</button
+                    >
+                {/if}
+            </div>
+            <div>
+                {#if dataResponse.next}
+                    <button
+                        on:click={() => {
+                            getCharacters(dataResponse.next.skip);
+                        }}
+                        class="block hover:bg-gray-200 hover:border-gray-300 rounded hover:shadow py-2 px-4 bg-gray-100 text-gray-500 border-2 border-gray-200 font-bold"
+                        >Next</button
+                    >
+                {/if}
+            </div>
         </div>
     </div>
 </main>
