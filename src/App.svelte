@@ -3,6 +3,11 @@
 
     let dataResponse = {};
     let characters = [];
+    let currentSkip = 0;
+
+    $: {
+        getCharacters(currentSkip);
+    }
 
     const fetchCharacters = async (skip) => {
         try {
@@ -16,7 +21,7 @@
         }
     };
 
-    const getCharacters = async (skip = 0) => {
+    const getCharacters = async (skip) => {
         const { res, data } = await fetchCharacters(skip);
         characters = data.data;
         dataResponse = data;
@@ -25,7 +30,7 @@
     };
 
     onMount(async () => {
-        await getCharacters();
+        await getCharacters(currentSkip);
     });
 </script>
 
@@ -77,7 +82,7 @@
                 {#if dataResponse.previous}
                     <button
                         on:click={() => {
-                            getCharacters(dataResponse.previous.skip);
+                            currentSkip = dataResponse.previous.skip;
                         }}
                         class="block hover:bg-gray-200 hover:border-gray-300 rounded hover:shadow py-2 px-4 bg-gray-100 text-gray-500 border-2 border-gray-200 font-bold"
                         >Previous</button
@@ -88,7 +93,7 @@
                 {#if dataResponse.next}
                     <button
                         on:click={() => {
-                            getCharacters(dataResponse.next.skip);
+                            currentSkip = dataResponse.next.skip;
                         }}
                         class="block hover:bg-gray-200 hover:border-gray-300 rounded hover:shadow py-2 px-4 bg-gray-100 text-gray-500 border-2 border-gray-200 font-bold"
                         >Next</button
